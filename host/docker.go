@@ -19,13 +19,17 @@ func (h *CommandHost) ConnectToNewDockerContainer() (remote *godet.RemoteDebugge
 		return h.remote, nil
 	}
 
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	seccompFile := filepath.Join(
+		os.Getenv("GOPATH"), "src", "github.com", "iafan", "hc", "chrome.json",
+	)
+
+	_, err = os.Stat(seccompFile)
 	if err != nil {
-		log.Println(err)
+		if os.IsNotExist(err) {
+			err = fmt.Errorf("File [%s] does not exist", seccompFile)
+		}
 		return
 	}
-
-	seccompFile := filepath.Join(dir, "chrome.json")
 
 	if h.verbose {
 		log.Printf("Creating a container from %s image", h.dockerImage)
