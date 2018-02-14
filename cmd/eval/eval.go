@@ -129,7 +129,7 @@ func (c *Command) Run(outfile *os.File) (err error) {
 		return err
 	}
 
-	outfile.WriteString(res.(string))
+	outfile.WriteString(fmt.Sprintf("%v", res))
 
 	return
 }
