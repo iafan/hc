@@ -112,7 +112,7 @@ $ hc resource --match regexp https://httpbin.org/ "forkme.*?\.png" > ~out.png
 # `--output-file` flag as described in one of the previous examples.
 ```
 
-## Feedback
+# Feedback
 
 Feel free to provide your feedback, suggestions or bug reports here in the <a href="https://github.com/iafan/hc/issues">bug tracker</a>, or message [@afan](https://gophers.slack.com/messages/@afan/) in the [Gophers Slack channel](https://gophersinvite.herokuapp.com/).
 
