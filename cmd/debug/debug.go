@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iafan/hc/lib"
 	"github.com/raff/godet"
+
+	"github.com/iafan/hc/lib"
 )
 
 // Command implements 'load' command

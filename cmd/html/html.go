@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/iafan/hc/cmd/eval"
-
 	"github.com/iafan/hc/lib"
 )
 
