@@ -1,15 +1,26 @@
 # About `hc`
 
-### _Headless Chrome automation for your command line._
+`hc` is a command-line tool that uses headless Chrome to generate
+HTML snapshots for static and dynamically rendered pages, download
+XHR resources or execute JavaScript code.
 
-**This utility should be treated as EXPERIMENTAL.
-The list of commands, their behavior and invocation syntax may change in the future.**
+The returned data can be rendered to STDOUT so your can capture it
+in your automation scripts or pipe to other tools. Or you can save
+data to disk for backup and offline processing.
 
 ```sh
+hc html "http://example.com/"
+
+# Output: the rendered HTML of the page (as the browser sees it)
+
+
 hc eval "http://example.com/" "return document.getElementsByTagName('p').length"
 
 # Output: `2`
 ```
+
+**This utility should be treated as EXPERIMENTAL.
+The list of commands, their behavior and invocation syntax may change in the future.**
 
 ### Advantages
 
