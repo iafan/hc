@@ -12,6 +12,39 @@ import (
 	"github.com/raff/godet"
 )
 
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
+
+func getSeccompFilePath() (filename string) {
+	// test if chrome.json file exists next to the binary
+
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err == nil {
+		filename = filepath.Join(dir, "chrome.json")
+		if fileExists(filename) {
+			return
+		}
+	}
+
+	// test if chrome.json file exists in the sources (if installed via `go get`)
+
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		gopath = filepath.Join(os.Getenv("HOME"), "go")
+	}
+
+	filename = filepath.Join(
+		gopath, "src", "github.com", "iafan", "hc", "chrome.json",
+	)
+	if fileExists(filename) {
+		return
+	}
+
+	return ""
+}
+
 // ConnectToNewDockerContainer connects to a new docker container
 // and returns a connected instance of *godet.RemoteDebugger
 func (h *CommandHost) ConnectToNewDockerContainer() (remote *godet.RemoteDebugger, err error) {
@@ -19,15 +52,9 @@ func (h *CommandHost) ConnectToNewDockerContainer() (remote *godet.RemoteDebugge
 		return h.remote, nil
 	}
 
-	seccompFile := filepath.Join(
-		os.Getenv("GOPATH"), "src", "github.com", "iafan", "hc", "chrome.json",
-	)
-
-	_, err = os.Stat(seccompFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = fmt.Errorf("File [%s] does not exist", seccompFile)
-		}
+	seccompFile := getSeccompFilePath()
+	if seccompFile == "" {
+		err = fmt.Errorf("chrome.json can not be found next to hc binary or in default source location")
 		return
 	}
 
