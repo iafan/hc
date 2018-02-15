@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 
 	"github.com/iafan/hc/cmd/debug"
 	"github.com/iafan/hc/cmd/eval"
@@ -87,6 +88,22 @@ func main() {
 			os.Exit(4)
 		}
 	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for range c {
+			if host.GetVerbose() {
+				os.Stderr.WriteString("\n")
+				log.Printf("Interrupted")
+			}
+			err = host.DisconnectFromRemote()
+			if err != nil {
+				os.Stderr.WriteString(err.Error())
+			}
+			os.Exit(5)
+		}
+	}()
 
 	// run the command
 	err = handler.Run(file)
