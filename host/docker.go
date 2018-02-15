@@ -62,6 +62,8 @@ func (h *CommandHost) ConnectToNewDockerContainer() (remote *godet.RemoteDebugge
 		log.Printf("Creating a container from %s image", h.dockerImage)
 	}
 
+	h.setCanInterrupt(false)
+
 	cmd := exec.Command(
 		"docker", "run", "-d",
 		"-p", "127.0.0.1::9222",
@@ -79,6 +81,12 @@ func (h *CommandHost) ConnectToNewDockerContainer() (remote *godet.RemoteDebugge
 	}
 
 	h.containerName = strings.TrimSpace(string(bytes))
+
+	if h.verbose {
+		log.Printf("Created container ID: %s", h.containerName)
+	}
+
+	h.setCanInterrupt(true)
 
 	cmd = exec.Command("docker", "port", h.containerName)
 	if h.verbose {
@@ -114,24 +122,56 @@ func (h *CommandHost) ConnectToNewDockerContainer() (remote *godet.RemoteDebugge
 // DisconnectAndRemoveDockerContainer dicsonnects from a headless Chrome
 // instance, and then stops and removes the temporary Docker container
 func (h *CommandHost) DisconnectAndRemoveDockerContainer() (err error) {
+	h.setCanInterrupt(false)
+	defer h.setCanInterrupt(true)
+
 	if h.remote != nil {
 		if h.verbose {
 			log.Printf("Disconnecting")
 		}
 		err = h.remote.Close()
 		if err != nil {
-			log.Printf("Error suring closing the connection: %v", err)
+			log.Printf("Error during closing the connection: %v", err)
 		}
 		h.remote = nil
+	}
 
-		if h.verbose {
-			log.Printf("Removing docker container")
-		}
-		cmd := exec.Command("docker", "rm", "--force", h.containerName)
-		err = cmd.Run()
-		if err != nil {
-			log.Printf("Error during removing the container: %v", err)
-			return
+	if h.containerName != "" {
+		const maxAttempts = 3
+
+		attempt := 1
+		for {
+			if h.verbose {
+				if attempt == 1 {
+					log.Printf("Removing docker container")
+				} else {
+					log.Printf("Removing docker container (attempt #%d)", attempt)
+				}
+			}
+
+			cmd := exec.Command("docker", "rm", "--force", "--volumes", h.containerName)
+			err = cmd.Run()
+			if err != nil {
+				log.Printf("Error during removing the container: %v", err)
+				return
+			}
+
+			cmd = exec.Command("docker", "container", "inspect", "--format", "1", h.containerName)
+			output, err := cmd.Output()
+			if err != nil {
+				// assume the error we get indicates that the container wasn't found
+				break
+			}
+
+			if string(output) == "1" {
+				if attempt == maxAttempts {
+					log.Printf("Gave up after %d attempts", maxAttempts)
+					break
+				}
+				attempt++
+			} else {
+				break
+			}
 		}
 	}
 	return

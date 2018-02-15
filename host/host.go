@@ -3,6 +3,7 @@ package host
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strings"
@@ -15,9 +16,11 @@ import (
 
 // CommandHost is a host for other commands
 type CommandHost struct {
-	showHelp        bool
-	verbose         bool
-	verboseDevTools bool
+	showHelp           bool
+	verbose            bool
+	verboseDevTools    bool
+	canInterrupt       bool
+	interruptRequested bool
 	//chromeHost      string
 	dockerImage string
 	deadline    time.Duration
@@ -50,6 +53,37 @@ func (h *CommandHost) GetVerbose() bool {
 // GetShowHelp implements Host.GetShowHelp
 func (h *CommandHost) GetShowHelp() bool {
 	return h.showHelp
+}
+
+// RequestInterrupt implements Host.RequestInterrupt
+func (h *CommandHost) RequestInterrupt() {
+	if !h.canInterrupt {
+		h.interruptRequested = true
+		return
+	}
+
+	if h.verbose {
+		log.Printf("Interrupted")
+	}
+
+	err := h.DisconnectFromRemote()
+	if err != nil {
+		os.Stderr.WriteString(err.Error())
+	}
+	os.Exit(5)
+}
+
+func (h *CommandHost) setCanInterrupt(canInterrupt bool) {
+	h.canInterrupt = canInterrupt
+
+	if !canInterrupt {
+		h.interruptRequested = false
+		return
+	}
+
+	if h.interruptRequested {
+		h.RequestInterrupt() // exit
+	}
 }
 
 // ListCommands renders a formatted list of registered commands
@@ -105,6 +139,7 @@ func (h *CommandHost) Init(cmdName string) {
 // New returns an initialized command host instance
 func New() *CommandHost {
 	return &CommandHost{
-		commands: make(map[string]lib.Command),
+		commands:     make(map[string]lib.Command),
+		canInterrupt: true,
 	}
 }

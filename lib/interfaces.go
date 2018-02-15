@@ -13,6 +13,7 @@ type Host interface {
 	DisconnectFromRemote() error
 	GetDeadline() time.Duration
 	GetVerbose() bool
+	RequestInterrupt()
 }
 
 // Command defines an interface for pluggable commands

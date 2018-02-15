@@ -93,15 +93,8 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		for range c {
-			if host.GetVerbose() {
-				os.Stderr.WriteString("\n")
-				log.Printf("Interrupted")
-			}
-			err = host.DisconnectFromRemote()
-			if err != nil {
-				os.Stderr.WriteString(err.Error())
-			}
-			os.Exit(5)
+			os.Stderr.WriteString("\n")
+			host.RequestInterrupt()
 		}
 	}()
 
