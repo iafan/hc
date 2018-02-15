@@ -54,7 +54,7 @@ func (h *CommandHost) GetShowHelp() bool {
 
 // ListCommands renders a formatted list of registered commands
 func (h *CommandHost) ListCommands() {
-	os.Stderr.WriteString("Available commands:")
+	os.Stderr.WriteString("Available commands:\n")
 
 	max := 0
 	for cmd := range h.commands {
