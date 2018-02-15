@@ -119,6 +119,9 @@ func (h *CommandHost) DisconnectAndRemoveDockerContainer() (err error) {
 			log.Printf("Disconnecting")
 		}
 		err = h.remote.Close()
+		if err != nil {
+			log.Printf("Error suring closing the connection: %v", err)
+		}
 		h.remote = nil
 
 		if h.verbose {
@@ -127,7 +130,7 @@ func (h *CommandHost) DisconnectAndRemoveDockerContainer() (err error) {
 		cmd := exec.Command("docker", "rm", "--force", h.containerName)
 		err = cmd.Run()
 		if err != nil {
-			log.Printf("Error: %v", err)
+			log.Printf("Error during removing the container: %v", err)
 			return
 		}
 	}
