@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/iafan/hc/lib"
+	"github.com/raff/godet"
 )
 
 // Command implements 'load' command
@@ -17,6 +18,8 @@ type Command struct {
 	blockedURLsParam string
 	blockedURLs      []string
 	url              string
+	stopEvent        string
+	wait             time.Duration
 }
 
 // GetDescription implements Command.GetDescription
@@ -48,6 +51,9 @@ Available options:
 // Init implements Command.Init
 func (c *Command) Init(host lib.Host) {
 	c.host = host
+
+	flag.StringVar(&c.stopEvent, "stop-event", "networkIdle", "Event to stop upon")
+	flag.DurationVar(&c.wait, "wait", 500*time.Millisecond, "Extra time to wait before running the script")
 
 	flag.StringVar(
 		&c.blockedURLsParam,
@@ -93,7 +99,7 @@ func (c *Command) Run(outfile *os.File) (err error) {
 		return
 	}
 
-	_, err = remote.Navigate(c.url)
+	tabID, err := remote.Navigate(c.url)
 
 	status := make(chan bool, 2)
 	result := false
@@ -102,6 +108,13 @@ func (c *Command) Run(outfile *os.File) (err error) {
 		time.Sleep(c.host.GetDeadline())
 		status <- false
 	}()
+
+	remote.CallbackEvent("Page.lifecycleEvent", func(params godet.Params) {
+		if params["name"] == c.stopEvent && params["frameId"] == tabID {
+			time.Sleep(c.wait)
+			status <- true
+		}
+	})
 
 	result = <-status
 
