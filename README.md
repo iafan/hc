@@ -14,25 +14,30 @@ their behavior and invocation syntax may change in the future.**
 
 ## Quick examples
 
+Output the rendered HTML of the page (as the browser sees it after building the page):
+
 ```sh
 hc html "http://example.com/"
-
-# Output: the rendered HTML of the page (as the browser sees it)
-
-
-hc eval "http://example.com/" "return document.getElementsByTagName('p').length"
-
-# Output: `2`
-
-
-hc screenshot "http://example.com/" >out.png
-
-# Output: screenshot is saved to out.png
 ```
+
+Output the number of paragraphs on a page:
+
+```sh
+hc eval "http://example.com/" "return document.getElementsByTagName('p').length"
+```
+
+Make a screenshot:
+
+```sh
+hc screenshot "http://example.com/" >out.png
+```
+
+See more examples below.
 
 ## Advantages
 
-1. Ease of deployment: `hc` compiles into a binary with no runtime dependencies apart from Docker;
+1. Ease of deployment: `hc` compiles into a binary with no runtime dependencies
+   apart from Docker;
 
 2. Ease of use in shell scripts or other scripting languages;
 
@@ -71,15 +76,15 @@ Docker will download and install the missing image. Please be patient.
 
 # Examples
 
-## Load a page, then evaluate JavaScript code and save the result to a file
+## Evaluating JavaScript on a page
+
+Save the list of href attributes of all the links on the page to a file:
 
 ```sh
 $ hc eval \
     --output-file "links-{TIMESTAMP}.txt" \
     "https://httpbin.org/" \
     "return Array(...document.getElementsByTagName('a')).map(el => el.getAttribute('href')).join('\n')"
-
-# Output: the list of href attributes of all the links on the page will be saved to a file.
 ```
 
 Here the output is redirected to a file with `links-{TIMESTAMP}.txt` name template;
@@ -89,17 +94,21 @@ in `YYYY-MM-DD-hh-mm-ss` format, so the final file name will look like this:
 
 ## Get the contents of a web page
 
+Output the rendered HTML document:
+
 ```sh
 $ hc html "https://httpbin.org/status/418"
+```
 
-# Output: the rendered HTML document. This command is equivalient to:
+The command above is equivalient to:
 
+```sh
 $ hc eval "https://httpbin.org/status/418" "return document.documentElement.outerHTML"
 ```
 
-```sh
-# If you need just the contents of the <body> tag, use:
+If you need just the contents of the <body> tag, use:
 
+```sh
 $ hc eval "https://httpbin.org/status/418" "return document.body.innerHTML"
 ```
 
@@ -110,43 +119,58 @@ the resource is loaded by the host page itself, with proper headers and
 cookies, and `hc` just captures its content. This allows for easy capturing
 of XHR resources.
 
+Output the value of the resource with the exact URL match:
+
 ```sh
 $ hc resource "http://example.com/" "http://example.com/xhr/someData.js"
-
-# Output: the value of the resource with the exact URL match.
 ```
+
+Output the value of the first resource with the URL starting with a given prefix:
 
 ```sh
 $ hc resource --match contains "https://httpbin.org/" "tracker.js"
-
-# Output: the value of the first resource with the URL starting with a given prefix.
 ```
+
+Output the value of the first resource with the URL matching a given
+regular expression (here the resource is a binary file, so the best option is
+to redirect the output to a file, or use the `--output-file` flag as described
+in one of the previous examples):
 
 ```sh
 $ hc resource --match regexp https://httpbin.org/ "forkme.*?\.png" > ~out.png
-
-# Output: the value of the first resource with the URL matching a given regular expression. Here the resource is a binary file, so the best option is to redirect the output to a file, or use the `--output-file` flag as described in one of the previous examples.
 ```
 
 ## Save a screenshot of a web page
 
+Make screenshot of a web page and save it to `out.png`:
+
 ```sh
 hc screenshot "http://example.com/" >out.png
-
-# Output: screenshot is saved to out.png. Default viewport size is 1024x768. The final dimensions of the screenshot are determined by the page content.
 ```
+
+When rendering the page, viewport size is set to 1024x768 by default. The final
+dimensions of the screenshot are determined by the page content, but you can
+control the initial size to imitate different devices:
 
 ```sh
 hc screenshot --initial-width 800 --initial-height 600 "http://example.com/" >out.png
-
-# Same as above, but initial viewport size is set to 800x600 prior to rendering the page. This allows making screenshots for different device sizes.
 ```
+
+In the command above the initial viewport size is set to 800x600 prior to
+rendering the page.
+
+In addition to limiting the initial viewport size, there's an option to limit
+the maximum viewport size:
 
 ```sh
 hc screenshot --max-width 1000 --max-height 1000 "http://example.com/" >out.png
-
-# Here maximum viewport size is limited to 1000x1000px. If the content doesn't fit in this viewport, scrollbars will appear on the screenshot.
 ```
+
+Here the maximum viewport size is limited to 1000x1000px. If the content doesn't fit
+in this viewport, scrollbars will appear on the screenshot.
+
+When no maximum height or width are defined, the viewport size will be adjusted
+to accommodate the content so that an entire page is captured without scrollbars.
 
 # Feedback
 
