@@ -1,12 +1,18 @@
 # About `hc`
 
-`hc` is a command-line tool that uses headless Chrome to generate
-HTML snapshots for static and dynamically rendered pages, download
-XHR resources, execute JavaScript code or generate screenshots.
+`hc` is a command-line tool that runs headless Chrome in isolated
+Docker containers (which are automatically created and destroyed)
+for safe and reproducible browser automation and data extraction tasks:
 
-The returned data can be rendered to STDOUT so your can capture it
-in your automation scripts or pipe to other tools. Or you can save
-data to disk for backup and offline processing.
+1. Generating HTML snapshots for static and dynamically rendered pages;
+2. Downloading XHR resources;
+3. Evaluating and capturing the output of arbitrary JavaScript code;
+4. Generating screenshots.
+
+**Consider this utility EXPERIMENTAL. The list of commands,
+their behavior and invocation syntax may change in the future.**
+
+## Quick examples
 
 ```sh
 hc html "http://example.com/"
@@ -24,17 +30,14 @@ hc screenshot "http://example.com/" >out.png
 # Output: screenshot is saved to out.png
 ```
 
-**This utility should be treated as EXPERIMENTAL.
-The list of commands, their behavior and invocation syntax may change in the future.**
+## Advantages
 
-### Advantages
-
-1. Ease of deployment: `hc` compiles into a binary with no system dependencies;
+1. Ease of deployment: `hc` compiles into a binary with no runtime dependencies apart from Docker;
 
 2. Ease of use in shell scripts or other scripting languages;
 
-3. Unix way of working with the data: pipe the fetched HTML or JSON
-   through other streaming tools. `hc` maintains a clean separation
+3. Unix way of working with the data: pipe the fetched HTML, JSON or binary
+   resources through other streaming tools. `hc` maintains a clean separation
    between data (STDOUT) and logging / error reporting (STDERR),
    and uses meaningful process exit codes;
 
@@ -47,8 +50,8 @@ The list of commands, their behavior and invocation syntax may change in the fut
    it is shut down automatically, and the container is killed, so your scripts
    never get stuck;
 
-6. Resource-friendliness. Container runs only when needed, so when you
-   don't use headless Chrome, it doesn't waste your system resources.
+6. Headless Chrome container runs only for the duration of the command execution,
+   so when you don't need it, it doesn't waste your system resources.
 
 # Installation
 
@@ -89,14 +92,12 @@ in `YYYY-MM-DD-hh-mm-ss` format, so the final file name will look like this:
 ```sh
 $ hc html "https://httpbin.org/status/418"
 
-# Output: the rendered HTML document.
-
-
-# The command above is equivalient to:
+# Output: the rendered HTML document. This command is equivalient to:
 
 $ hc eval "https://httpbin.org/status/418" "return document.documentElement.outerHTML"
+```
 
-
+```sh
 # If you need just the contents of the <body> tag, use:
 
 $ hc eval "https://httpbin.org/status/418" "return document.body.innerHTML"
@@ -113,19 +114,18 @@ of XHR resources.
 $ hc resource "http://example.com/" "http://example.com/xhr/someData.js"
 
 # Output: the value of the resource with the exact URL match.
+```
 
-
+```sh
 $ hc resource --match contains "https://httpbin.org/" "tracker.js"
 
 # Output: the value of the first resource with the URL starting with a given prefix.
+```
 
-
+```sh
 $ hc resource --match regexp https://httpbin.org/ "forkme.*?\.png" > ~out.png
 
-# Output: the value of the first resource with the URL matching
-# a given regular expression. Here the resource is a binary file,
-# so the best option is to redirect the output to a file, or use the
-# `--output-file` flag as described in one of the previous examples.
+# Output: the value of the first resource with the URL matching a given regular expression. Here the resource is a binary file, so the best option is to redirect the output to a file, or use the `--output-file` flag as described in one of the previous examples.
 ```
 
 ## Save a screenshot of a web page
@@ -133,20 +133,19 @@ $ hc resource --match regexp https://httpbin.org/ "forkme.*?\.png" > ~out.png
 ```sh
 hc screenshot "http://example.com/" >out.png
 
-# Output: screenshot is saved to out.png. Default viewport size is 1024x768.
-# The final dimensions of the screenshot are determined by the page content.
+# Output: screenshot is saved to out.png. Default viewport size is 1024x768. The final dimensions of the screenshot are determined by the page content.
+```
 
-
+```sh
 hc screenshot --initial-width 800 --initial-height 600 "http://example.com/" >out.png
 
-# Same as above, but initial viewport size is set to 800x600 prior to
-# rendering the page. This allows making screenshots for different device sizes.
+# Same as above, but initial viewport size is set to 800x600 prior to rendering the page. This allows making screenshots for different device sizes.
+```
 
-
+```sh
 hc screenshot --max-width 1000 --max-height 1000 "http://example.com/" >out.png
 
-# Here maximum viewport size is limited to 1000x1000px. If the content
-# Doesn't fit in this viewport, scrollbars will appear on the screenshot.
+# Here maximum viewport size is limited to 1000x1000px. If the content doesn't fit in this viewport, scrollbars will appear on the screenshot.
 ```
 
 # Feedback
