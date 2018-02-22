@@ -2,7 +2,7 @@
 
 `hc` is a command-line tool that uses headless Chrome to generate
 HTML snapshots for static and dynamically rendered pages, download
-XHR resources or execute JavaScript code.
+XHR resources, execute JavaScript code or generate screenshots.
 
 The returned data can be rendered to STDOUT so your can capture it
 in your automation scripts or pipe to other tools. Or you can save
@@ -17,6 +17,11 @@ hc html "http://example.com/"
 hc eval "http://example.com/" "return document.getElementsByTagName('p').length"
 
 # Output: `2`
+
+
+hc screenshot "http://example.com/" >out.png
+
+# Output: screenshot is saved to out.png
 ```
 
 **This utility should be treated as EXPERIMENTAL.
@@ -121,6 +126,27 @@ $ hc resource --match regexp https://httpbin.org/ "forkme.*?\.png" > ~out.png
 # a given regular expression. Here the resource is a binary file,
 # so the best option is to redirect the output to a file, or use the
 # `--output-file` flag as described in one of the previous examples.
+```
+
+## Save a screenshot of a web page
+
+```sh
+hc screenshot "http://example.com/" >out.png
+
+# Output: screenshot is saved to out.png. Default viewport size is 1024x768.
+# The final dimensions of the screenshot are determined by the page content.
+
+
+hc screenshot --initial-width 800 --initial-height 600 "http://example.com/" >out.png
+
+# Same as above, but initial viewport size is set to 800x600 prior to
+# rendering the page. This allows making screenshots for different device sizes.
+
+
+hc screenshot --max-width 1000 --max-height 1000 "http://example.com/" >out.png
+
+# Here maximum viewport size is limited to 1000x1000px. If the content
+# Doesn't fit in this viewport, scrollbars will appear on the screenshot.
 ```
 
 # Feedback

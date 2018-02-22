@@ -11,6 +11,7 @@ import (
 	"github.com/iafan/hc/cmd/eval"
 	"github.com/iafan/hc/cmd/html"
 	"github.com/iafan/hc/cmd/resource"
+	"github.com/iafan/hc/cmd/screenshot"
 	"github.com/iafan/hc/cmd/version"
 	"github.com/iafan/hc/host"
 	"github.com/iafan/hc/lib/util"
@@ -25,6 +26,7 @@ func main() {
 	host.SetHandler("eval", &eval.Command{})
 	host.SetHandler("html", &html.Command{})
 	host.SetHandler("resource", &resource.Command{})
+	host.SetHandler("screenshot", &screenshot.Command{})
 	host.SetHandler("version", &version.Command{})
 
 	aliases := make(map[string]string)
@@ -32,6 +34,7 @@ func main() {
 	aliases["e"] = "eval"
 	aliases["h"] = "html"
 	aliases["r"] = "resource"
+	aliases["s"] = "screenshot"
 	aliases["v"] = "version"
 
 	if len(args) == 0 || args[0] == "--help" {
