@@ -27,6 +27,7 @@ type Command struct {
 	matchIsContains  bool
 	matchIsPrefix    bool
 	matchIsRegex     bool
+	matchIdx         uint
 	url              string
 	wait             time.Duration
 
@@ -62,7 +63,7 @@ func (c *Command) Init(host lib.Host) {
 	c.host = host
 
 	flag.StringVar(&c.matchMode, "match", "exact", "Match mode to use ('contains', 'exact', 'prefix' or 'regexp')")
-	flag.BoolVar(&c.matchIsRegex, "match-regexp", false, "Match using a regular expression")
+	flag.UintVar(&c.matchIdx, "match-index", 0, "Match only index-th resource out of qualified ones")
 	flag.DurationVar(&c.wait, "wait", 500*time.Millisecond, "Extra time to wait before capturing data")
 
 	flag.StringVar(
@@ -187,6 +188,11 @@ func (c *Command) Run(outfile *os.File) (err error) {
 		} else {
 			// exact match
 			matched = respURL == c.resourceMatch
+		}
+
+		if matched && c.matchIdx > 0 {
+			c.matchIdx--
+			matched = false
 		}
 
 		if matched {
